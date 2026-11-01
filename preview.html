@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plant Pigment Chromatography Lab</title>
+<style>
+:root {
+  --bg:#071b20; --panel:#102b31; --panel2:#16383e;
+  --line:#285057; --text:#e8f5f1; --muted:#9bb7b0;
+  --lime:#b9f36b; --teal:#42d6bd; --white:#fff;
+}
+* {box-sizing:border-box}
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Inter,Arial,sans-serif; min-height:100vh;
+}
+button {font:inherit; cursor:pointer}
+header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 25px; border-bottom:1px solid var(--line);
+  background:#0a2228; gap:12px; flex-wrap:wrap;
+}
+.brand {font-weight:800; letter-spacing:1px}
+.brand span {color:var(--lime)}
+.status {color:var(--lime);font-size:12px}
+main {
+  display:grid; grid-template-columns:230px minmax(300px,1fr) 270px;
+  gap:16px; padding:18px; max-width:1600px; margin:auto;
+}
+.panel {
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:15px; padding:16px; min-width:0;
+}
+h2 {font-size:15px;margin:0 0 14px}
+h3 {font-size:13px;color:var(--lime);margin:15px 0 8px}
+.muted {color:var(--muted);font-size:12px;line-height:1.6}
+.tool {
+  width:100%; display:flex; align-items:center; gap:10px;
+  padding:11px; margin:7px 0; border:1px solid var(--line);
+  background:#15343a; color:var(--text); border-radius:10px;
+  text-align:left; transition:.2s;
+}
+.tool:hover,.tool:focus-visible {
+  border-color:var(--lime); transform:translateX(3px);
+  outline:none;
+}
+.tool.used {opacity:.4}
+.tool .emoji {font-size:23px}
+.tool small {display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.workbench {display:flex;flex-direction:column;gap:13px}
+.worktop {
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;flex-wrap:wrap;
+}
+.worktop h2 {margin:0}
+.scene {
+  position:relative; min-height:490px; overflow:hidden;
+  border:1px solid var(--line);border-radius:15px;
+  background:
+    linear-gradient(rgba(66,214,189,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(66,214,189,.045) 1px,transparent 1px),
+    #0b252b;
+  background-size:25px 25px;
+}
+.scene:after {
+  content:"";position:absolute;bottom:0;left:0;right:0;height:85px;
+  background:linear-gradient(transparent,#16343a);
+  pointer-events:none;
+}
+.lab-label {
+  position:absolute;top:14px;left:16px;font-size:10px;
+  letter-spacing:2px;color:#668d85;
+}
+.zone {
+  position:absolute;z-index:2;border:1px dashed #47736b;
+  border-radius:13px;background:rgba(18,52,56,.6);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:7px;text-align:center;
+  color:var(--muted);font-size:12px;padding:10px;
+  transition:.2s;
+}
+.zone.over {border:2px solid var(--lime);background:#24483d}
+.zone .big {font-size:38px}
+#mortarZone {left:5%;top:17%;width:34%;height:190px}
+#paperZone {right:5%;top:12%;width:30%;height:300px}
+#chamberZone {left:37%;bottom:12%;width:27%;height:185px}
+#grindBtn {position:absolute;z-index:4;left:12%;top:55%}
+#pipetteBtn {position:absolute;z-index:4;left:9%;top:70%}
+#startBtn {position:absolute;z-index:4;right:7%;bottom:8%}
+.lab-btn {
+  border:0;border-radius:9px;padding:10px 14px;
+  background:var(--lime);color:#14251a;font-weight:800;
+}
+.lab-btn.secondary {background:#24474d;color:var(--text);border:1px solid var(--line)}
+.lab-btn:disabled {opacity:.35;cursor:not-allowed}
+#paper {
+  width:55px;height:230px;background:#f4f0d9;border-radius:3px;
+  position:relative;display:none;box-shadow:0 5px 20px #0008;
+  overflow:hidden;
+}
+#paper .origin {
+  position:absolute;bottom:22px;left:0;right:0;
+  border-top:1px dashed #777;
+}
+#paper .spot {
+  position:absolute;bottom:18px;left:50%;width:9px;height:5px;
+  transform:translateX(-50%);background:#285e29;border-radius:50%;
+}
+#solventFront {
+  position:absolute;bottom:0;left:0;right:0;height:0;
+  background:linear-gradient(0deg,rgba(68,185,157,.5),rgba(68,185,157,.05));
+  transition:height .15s linear;
+}
+.band {
+  position:absolute;left:9px;right:9px;height:10px;
+  border-radius:50%;opacity:0;cursor:pointer;
+  box-shadow:0 0 9px currentColor;z-index:3;
+  transition:opacity .3s;
+}
+.band.visible {opacity:1}
+#paper.running .band {animation:glow 1s infinite alternate}
+@keyframes glow {to{filter:brightness(1.3)}}
+#mortarContent {font-size:30px}
+#progressWrap {height:7px;background:#1d3d42;border-radius:9px;overflow:hidden}
+#progress {height:100%;width:0;background:var(--lime);transition:width .15s}
+.controls {display:flex;gap:8px;flex-wrap:wrap}
+.step {
+  padding:12px;border:1px solid var(--line);border-radius:10px;
+  margin:8px 0;background:#122f35;font-size:12px;line-height:1.5;
+}
+.step.active {border-color:var(--lime);background:#1b3c37}
+.step.done {border-color:#42d6bd}
+.step b {color:var(--lime)}
+.info-card {
+  background:#17373b;padding:12px;border-radius:10px;margin:9px 0;
+  border-left:3px solid var(--pigment);
+}
+.info-card strong {font-size:12px}
+.info-card p {font-size:11px;color:var(--muted);line-height:1.5;margin:6px 0 0}
+#notice {
+  min-height:43px;padding:12px;border-radius:9px;
+  background:#17383b;color:var(--teal);font-size:12px;line-height:1.5;
+}
+.drag-hint {font-size:11px;color:var(--muted);margin-top:12px}
+@media(max-width:1000px) {
+  main {grid-template-columns:200px 1fr}
+  aside:last-child {grid-column:1/-1}
+}
+@media(max-width:650px) {
+  main {grid-template-columns:1fr;padding:10px}
+  .scene {min-height:540px}
+  #mortarZone {left:3%;width:42%;top:13%}
+  #paperZone {right:3%;width:39%;top:10%}
+  #chamberZone {left:35%;width:34%;bottom:12%}
+  #grindBtn {left:5%;top:53%}
+  #pipetteBtn {left:5%;top:64%}
+  #startBtn {right:4%;bottom:5%}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">◈ BOTANICAL <span>LAB</span> / 01</div>
+  <div class="status">● SIMULATION SYSTEM ONLINE</div>
+</header>
+
+<main>
+  <aside class="panel">
+    <h2>▦ DỤNG CỤ & HÓA CHẤT</h2>
+    <p class="muted">Click hoặc kéo dụng cụ vào bàn thí nghiệm.</p>
+    <div id="toolList">
+      <button class="tool" draggable="true" data-tool="leaf"><span class="emoji">🍃</span><span>Lá cây<small>Mẫu thực vật tươi</small></span></button>
+      <button class="tool" draggable="true" data-tool="solvent"><span class="emoji">🧪</span><span>Dung môi<small>Cồn / Acetone</small></span></button>
+      <button class="tool" draggable="true" data-tool="mortar"><span class="emoji">⚗️</span><span>Cối chày sứ<small>Dụng cụ nghiền mẫu</small></span></button>
+      <button class="tool" draggable="true" data-tool="paper"><span class="emoji">📜</span><span>Giấy sắc ký<small>Pha tĩnh cellulose</small></span></button>
+      <button class="tool" draggable="true" data-tool="pipette"><span class="emoji">💉</span><span>Pipet<small>Chấm mẫu thử</small></span></button>
+      <button class="tool" draggable="true" data-tool="chamber"><span class="emoji">🥛</span><span>Cốc thủy tinh<small>Buồng triển khai</small></span></button>
+      <button class="tool" draggable="true" data-tool="rod"><span class="emoji">🥢</span><span>Đũa thủy tinh<small>Hỗ trợ thao tác</small></span></button>
+    </div>
+    <p class="drag-hint">TIP: Trên điện thoại, hãy chạm vào dụng cụ để sử dụng.</p>
+  </aside>
+
+  <section class="workbench">
+    <div class="worktop">
+      <h2>▣ MAIN WORKBENCH</h2>
+      <span class="muted" id="stageText">STAGE 01 / PREPARATION</span>
+    </div>
+    <div class="scene" id="scene">
+      <div class="lab-label">EXPERIMENT AREA / CHROMATOGRAPHY</div>
+
+      <div class="zone" id="mortarZone" data-zone="mortar">
+        <div class="big" id="mortarContent">⚗️</div>
+        <b>CỐI NGHIỀN</b>
+        <span id="mortarLabel">Thả lá cây + dung môi</span>
+      </div>
+
+      <div class="zone" id="paperZone" data-zone="paper">
+        <div id="paper">
+          <div class="origin"></div>
+          <div class="spot"></div>
+          <div id="solventFront"></div>
+          <div class="band" data-pigment="chlB" style="bottom:65px;background:#a4b83b;color:#a4b83b"></div>
+          <div class="band" data-pigment="chlA" style="bottom:91px;background:#287c48;color:#287c48"></div>
+          <div class="band" data-pigment="xan" style="bottom:125px;background:#e6c83c;color:#e6c83c"></div>
+          <div class="band" data-pigment="car" style="bottom:165px;background:#ef8c27;color:#ef8c27"></div>
+        </div>
+        <b>GIẤY SẮC KÝ</b>
+        <span id="paperLabel">Chưa chuẩn bị mẫu</span>
+      </div>
+
+      <div class="zone" id="chamberZone" data-zone="chamber">
+        <div class="big">🥛</div>
+        <b>BUỒNG SẮC KÝ</b>
+        <span id="chamberLabel">Chờ giấy sắc ký</span>
+      </div>
+
+      <button class="lab-btn" id="grindBtn" disabled>⚙ NGHIỀN MẪU</button>
+      <button class="lab-btn secondary" id="pipetteBtn" disabled>↓ CHẤM MẪU</button>
+      <button class="lab-btn" id="startBtn" disabled>▶ CHẠY SẮC KÝ</button>
+    </div>
+
+    <div class="panel">
+      <div class="worktop">
+        <h2>TIẾN TRÌNH THÍ NGHIỆM</h2>
+        <span class="muted" id="percent">0%</span>
+      </div>
+      <div id="progressWrap"><div id="progress"></div></div>
+      <div class="controls" style="margin-top:13px">
+        <button class="lab-btn secondary" id="pauseBtn" disabled>Ⅱ Tạm dừng</button>
+        <button class="lab-btn secondary" id="fastBtn" disabled>» Tăng tốc ×3</button>
+        <button class="lab-btn secondary" id="resetBtn">↻ Bắt đầu lại</button>
+      </div>
+      <div id="notice" style="margin-top:12px">Hệ thống sẵn sàng. Hãy chọn lá cây và dung môi để bắt đầu.</div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2>▤ QUY TRÌNH THỰC NGHIỆM</h2>
+    <div class="step active" id="step1"><b>01 — CHIẾT XUẤT</b><br>Đưa lá và dung môi vào cối, sau đó nghiền mẫu.</div>
+    <div class="step" id="step2"><b>02 — CHẤM MẪU</b><br>Dùng pipet chấm dịch chiết lên vạch xuất phát.</div>
+    <div class="step" id="step3"><b>03 — TRIỂN KHAI</b><br>Đặt giấy vào buồng chứa dung môi.</div>
+    <div class="step" id="step4"><b>04 — TÁCH SẮC TỐ</b><br>Quan sát các dải màu di chuyển và tách ra.</div>
+
+    <h3>NHẬN DIỆN SẮC TỐ</h3>
+    <div id="pigmentInfo">
+      <p class="muted">Sau khi sắc ký hoàn tất, hãy click vào từng dải màu để khám phá sắc tố.</p>
+    </div>
+  </aside>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = s => document.querySelector(s);
+  const state = {
+    leaf:false, solvent:false, ground:false, paper:false,
+    spotted:false, chamber:false, running:false, done:false,
+    progress:0, speed:1, timer:null
+  };
+
+  const pigments = {
+    chlB:{
+      name:'Diệp lục b', color:'#a4b83b',
+      detail:'Màu xanh lục vàng. Hấp thụ ánh sáng chủ yếu ở vùng xanh lam và đỏ cam; hỗ trợ diệp lục a trong quang hợp.'
+    },
+    chlA:{
+      name:'Diệp lục a', color:'#287c48',
+      detail:'Màu xanh lục lam. Là sắc tố quang hợp chủ yếu, trực tiếp tham gia trung tâm phản ứng quang hợp.'
+    },
+    xan:{
+      name:'Xanthophyll', color:'#e6c83c',
+      detail:'Sắc tố vàng thuộc nhóm carotenoid. Hỗ trợ thu nhận ánh sáng và bảo vệ bộ máy quang hợp.'
+    },
+    car:{
+      name:'Caroten', color:'#ef8c27',
+      detail:'Sắc tố vàng cam thuộc nhóm carotenoid. Tan tốt trong dung môi hữu cơ và thường di chuyển xa hơn trên giấy.'
+    }
+  };
+
+  function notify(message) { $('#notice').textContent = message; }
+  function step(n) {
+    for(let i=1;i<=4;i++) {
+      $('#step'+i).classList.toggle('active',i===n);
+      if(i<n) $('#step'+i).classList.add('done');
+      else $('#step'+i).classList.remove('done');
+    }
+    $('#stageText').textContent = `STAGE 0${n} / LAB PROCESS`;
+  }
+  function update() {
+    $('#grindBtn').disabled = !(state.leaf && state.solvent && !state.ground);
+    $('#pipetteBtn').disabled = !state.ground || state.spotted;
+    $('#startBtn').disabled = !state.chamber || state.running || state.done;
+    $('#pauseBtn').disabled = !state.running;
+    $('#fastBtn').disabled = !state.running;
+    $('#percent').textContent = Math.round(state.progress)+'%';
+    $('#progress').style.width = state.progress+'%';
+  }
+
+  function useTool(tool) {
+    if(state.running || state.done) {
+      notify('Thí nghiệm đang chạy hoặc đã hoàn tất. Hãy đặt lại để bắt đầu lại.');
+      return;
+    }
+    switch(tool) {
+      case 'leaf':
+        if(state.leaf) return;
+        state.leaf=true; notify('Đã đưa lá cây vào khu vực chuẩn bị.');
+        break;
+      case 'solvent':
+        if(state.solvent) return;
+        state.solvent=true; notify('Đã thêm dung môi chiết xuất.');
+        break;
+      case 'mortar':
+        notify('Cối nghiền đã được bố trí sẵn trên bàn thí nghiệm.');
+        break;
+      case 'paper':
+        if(!state.spotted) {
+          notify('Hãy chiết xuất và chấm mẫu trước khi sử dụng giấy sắc ký.');
+          return;
+        }
+        state.paper=true; $('#paper').style.display='block';
+        $('#paperLabel').textContent='Đã chuẩn bị mẫu';
+        notify('Đã lấy giấy sắc ký có mẫu.');
+        break;
+      case 'pipette':
+        if(!state.ground) {notify('Bạn cần nghiền lá để tạo dịch chiết trước.');return;}
+        spotSample(); break;
+      case 'chamber':
+        if(!state.spotted) {notify('Hãy chấm mẫu lên giấy trước.');return;}
+        state.chamber=true;
+        $('#chamberLabel').textContent='Giấy đã đặt vào buồng';
+        $('#paper').style.display='block';
+        notify('Giấy sắc ký đã được đặt vào buồng triển khai.');
+        step(4); break;
+      case 'rod':
+        notify('Đũa thủy tinh dùng để hỗ trợ thao tác trộn mẫu.');
+        break;
+    }
+    update();
+  }
+
+  document.querySelectorAll('.tool').forEach(btn => {
+    btn.addEventListener('click',()=>useTool(btn.dataset.tool));
+    btn.addEventListener('dragstart',e=>{
+      e.dataTransfer.setData('text/plain',btn.dataset.tool);
+      e.dataTransfer.effectAllowed='copy';
+    });
+  });
+
+  document.querySelectorAll('.zone').forEach(zone=>{
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over')});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('over');
+      const tool=e.dataTransfer.getData('text/plain');
+      const target=zone.dataset.zone;
+      if(target==='mortar' && ['leaf','solvent','mortar'].includes(tool)) useTool(tool);
+      else if(target==='paper' && ['paper','pipette'].includes(tool)) useTool(tool);
+      else if(target==='chamber' && ['paper','chamber'].includes(tool)) useTool('chamber');
+      else notify('Hãy thả dụng cụ vào khu vực phù hợp.');
+    });
+  });
+
+  $('#grindBtn').addEventListener('click',()=>{
+    if(!(state.leaf && state.solvent)) return;
+    state.ground=true;
+    $('#mortarContent').textContent='🟢';
+    $('#mortarContent').animate(
+      [{transform:'rotate(0deg)'},{transform:'rotate(-15deg)'},{transform:'rotate(15deg)'},{transform:'rotate(0deg)'}],
+      {duration:650,iterations:3}
+    );
+    $('#mortarLabel').textContent='Dịch chiết xanh đậm';
+    notify('Nghiền mẫu hoàn tất. Dịch chiết sắc tố đã sẵn sàng.');
+    step(2);update();
+  });
+
+  function spotSample() {
+    if(!state.ground || state.spotted) return;
+    state.spotted=true;
+    state.paper=true;
+    $('#paper').style.display='block';
+    $('#paperLabel').textContent='Đã chấm dịch chiết';
+    $('#paper .spot').style.background='#23612d';
+    notify('Đã chấm dịch chiết lên vạch xuất phát của giấy.');
+    step(3);update();
+  }
+  $('#pipetteBtn').addEventListener('click',spotSample);
+
+  $('#startBtn').addEventListener('click',()=>{
+    if(!state.chamber || state.running || state.done) return;
+    state.running=true;
+    $('#paper').classList.add('running');
+    notify('Dung môi đang thấm lên giấy. Các sắc tố bắt đầu phân tách...');
+    update();
+    state.timer=setInterval(()=>{
+      state.progress=Math.min(100,state.progress+0.35*state.speed);
+      $('#solventFront').style.height=(state.progress*0.88)+'%';
+      // Các sắc tố xuất hiện lần lượt theo khả năng di chuyển.
+      const thresholds={chlB:22,chlA:34,xan:48,car:62};
+      Object.entries(thresholds).forEach(([key,value])=>{
+        if(state.progress>=value) {
+          const band=document.querySelector(`[data-pigment="${key}"]`);
+          band.classList.add('visible');
+        }
+      });
+      update();
+      if(state.progress>=100) finish();
+    },50);
+  });
+
+  function finish() {
+    clearInterval(state.timer);
+    state.running=false;state.done=true;
+    $('#paper').classList.remove('running');
+    $('#solventFront').style.height='88%';
+    $('#paperLabel').textContent='Đã hoàn tất phân tách';
+    notify('Hoàn tất sắc ký! Click vào các dải màu trên giấy hoặc bảng sắc tố để xem thông tin.');
+    step(5);
+    update();
+  }
+
+  $('#pauseBtn').addEventListener('click',()=>{
+    if(!state.running)return;
+    clearInterval(state.timer);state.running=false;
+    notify('Đã tạm dừng mô phỏng. Nhấn “Chạy sắc ký” để tiếp tục.');
+    $('#paper').classList.remove('running');
+    update();
+  });
+  // Nút chạy tiếp cũng dùng nút start.
+  $('#startBtn').addEventListener('dblclick',()=>{});
+  $('#fastBtn').addEventListener('click',()=>{
+    if(!state.running)return;
+    state.speed=state.speed===1?3:1;
+    $('#fastBtn').textContent=state.speed===3?'» Tốc độ ×3 (bật)':'» Tăng tốc ×3';
+    notify(state.speed===3?'Đã tăng tốc mô phỏng gấp 3 lần.':'Đã trở về tốc độ bình thường.');
+  });
+
+  Object.entries(pigments).forEach(([key,p])=>{
+    const card=document.createElement('div');
+    card.className='info-card';
+    card.style.setProperty('--pigment',p.color);
+    card.innerHTML=`<strong>${p.name}</strong><p>${p.detail}</p>`;
+    card.style.cursor='pointer';
+    card.addEventListener('click',()=>showPigment(key));
+    $('#pigmentInfo').appendChild(card);
+  });
+  function showPigment(key) {
+    if(!document.querySelector(`[data-pigment="${key}"]`).classList.contains('visible')) {
+      notify('Dải sắc tố này chưa xuất hiện. Hãy tiếp tục chạy sắc ký.');
+      return;
+    }
+    const p=pigments[key];
+    notify(`${p.name}: ${p.detail}`);
+  }
+  document.querySelectorAll('.band').forEach(b=>{
+    b.addEventListener('click',()=>showPigment(b.dataset.pigment));
+    b.addEventListener('mouseenter',()=>showPigment(b.dataset.pigment));
+  });
+
+  $('#resetBtn').addEventListener('click',()=>{
+    clearInterval(state.timer);
+    Object.assign(state,{
+      leaf:false,solvent:false,ground:false,paper:false,spotted:false,
+      chamber:false,running:false,done:false,progress:0,speed:1,timer:null
+    });
+    $('#mortarContent').textContent='⚗️';
+    $('#mortarLabel').textContent='Thả lá cây + dung môi';
+    $('#paper').style.display='none';
+    $('#paper').classList.remove('running');
+    $('#paperLabel').textContent='Chưa chuẩn bị mẫu';
+    $('#chamberLabel').textContent='Chờ giấy sắc ký';
+    $('#solventFront').style.height='0';
+    document.querySelectorAll('.band').forEach(b=>b.classList.remove('visible'));
+    $('#fastBtn').textContent='» Tăng tốc ×3';
+    $('#pigmentInfo').querySelectorAll('.info-card').forEach(c=>c.style.opacity='1');
+    step(1);
+    notify('Đã đặt lại thí nghiệm. Hãy chọn lá cây và dung môi.');
+    update();
+  });
+
+  // Sau khi tạm dừng, nút chạy sắc ký tiếp tục từ tiến độ cũ.
+  $('#startBtn').addEventListener('click',()=>{
+    // Listener chính phía trên đảm nhận việc khởi động.
+  });
+
+  update();
+});
+</script>
+</body>
+</html>
